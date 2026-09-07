@@ -1,4 +1,66 @@
-frontend
- ├── index.html
- ├── style.css
- └── dashboard.js
+
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<title>
+AI CRYPTO RADAR
+</title>
+
+<link rel="stylesheet" href="/static/style.css">
+
+</head>
+
+
+<body>
+
+
+<h1>
+🐋 AI CRYPTO RADAR
+</h1>
+
+
+<h3>
+LIVE SCANNER
+</h3>
+
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>
+Coin
+</th>
+
+<th>
+Score
+</th>
+
+<th>
+Price
+</th>
+
+</tr>
+
+</thead>
+
+
+<tbody id="data">
+
+</tbody>
+
+
+</table>
+
+
+<script src="/static/dashboard.js"></script>
+
+
+</body>
+
+</html>
