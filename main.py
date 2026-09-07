@@ -1,46 +1,40 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
 from database import create_db,get_signals
-from scanner import scan
-import threading
-import time
 
 
-app=FastAPI(
-title="AI CRYPTO RADAR"
+app = FastAPI(
+    title="AI CRYPTO RADAR"
 )
 
 
 create_db()
 
 
-
-def worker():
-
-    while True:
-
-        scan()
-
-        time.sleep(60)
-
-
-
-threading.Thread(
-target=worker,
-daemon=True
-).start()
-
-
-
 @app.get("/")
+
 def home():
 
-    return {
-    "status":"AI CRYPTO RADAR Running"
-    }
+    return FileResponse(
+        "frontend/index.html"
+    )
 
 
 
 @app.get("/signals")
+
 def signals():
 
     return get_signals()
+
+
+
+app.mount(
+    "/static",
+    StaticFiles(
+        directory="frontend"
+    ),
+    name="static"
+)
