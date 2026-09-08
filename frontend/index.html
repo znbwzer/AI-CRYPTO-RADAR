@@ -1,14 +1,22 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
 
 <head>
+
+<meta charset="UTF-8">
+
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0">
 
 <title>
 AI CRYPTO RADAR
 </title>
 
-<link rel="stylesheet" href="/static/style.css">
+<link
+rel="stylesheet"
+href="/static/style.css">
 
 </head>
 
@@ -16,15 +24,106 @@ AI CRYPTO RADAR
 <body>
 
 
+<div class="container">
+
+
+<header>
+
+<div>
+
 <h1>
 🐋 AI CRYPTO RADAR
 </h1>
 
+<p>
+Smart Money & Early Pump Scanner
+</p>
 
-<h3>
-LIVE SCANNER
-</h3>
+</div>
 
+
+<div id="status"
+class="status loading">
+
+Connecting...
+
+</div>
+
+
+</header>
+
+
+
+<div class="stats">
+
+
+<div class="card">
+
+<span>
+Scanner Status
+</span>
+
+<strong id="scannerStatus">
+Loading...
+</strong>
+
+</div>
+
+
+<div class="card">
+
+<span>
+Last Scan
+</span>
+
+<strong id="lastScan">
+--
+</strong>
+
+</div>
+
+
+<div class="card">
+
+<span>
+Opportunities
+</span>
+
+<strong id="coinsFound">
+0
+</strong>
+
+</div>
+
+
+</div>
+
+
+
+<div class="section-header">
+
+<h2>
+🔥 TOP OPPORTUNITIES
+</h2>
+
+<button onclick="loadData()">
+
+🔄 Refresh
+
+</button>
+
+</div>
+
+
+
+<div id="loading">
+
+🐋 Scanning Binance Market...
+
+</div>
+
+
+<div class="table-wrapper">
 
 <table>
 
@@ -32,33 +131,66 @@ LIVE SCANNER
 
 <tr>
 
-<th>
-Coin
-</th>
+<th>#</th>
 
-<th>
-Score
-</th>
+<th>Coin</th>
 
-<th>
-Price
-</th>
+<th>Score</th>
+
+<th>Signal</th>
+
+<th>Price</th>
+
+<th>RSI</th>
+
+<th>Volume</th>
+
+<th>Reasons</th>
 
 </tr>
 
 </thead>
 
 
-<tbody id="data">
+<tbody id="results">
 
 </tbody>
 
 
 </table>
 
+</div>
+
+
+
+<h2 class="history-title">
+
+📜 Signal History
+
+</h2>
+
+
+<div id="history">
+
+Loading...
+
+</div>
+
+
+<footer>
+
+AI CRYPTO RADAR V1<br>
+
+⚠️ Scanner for analysis only.
+Not financial advice.
+
+</footer>
+
+
+</div>
+
 
 <script src="/static/dashboard.js"></script>
-
 
 </body>
 
