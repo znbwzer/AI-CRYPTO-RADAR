@@ -1,47 +1,139 @@
-def score_market(data):
+def calculate_score(data):
 
-    score=0
+    score = 0
+    reasons = []
 
-    reasons=[]
 
+    # =========================
+    # 🐋 Volume / Whale Activity
+    # =========================
 
-    if data["volume_ratio"]>3:
+    if data["volume_ratio"] >= 4:
 
-        score+=30
+        score += 30
+
         reasons.append(
-        "🐋 Volume Explosion"
+            "🐋 Very Strong Volume Activity"
+        )
+
+    elif data["volume_ratio"] >= 2.5:
+
+        score += 22
+
+        reasons.append(
+            "🐋 Strong Volume Increase"
+        )
+
+    elif data["volume_ratio"] >= 1.5:
+
+        score += 10
+
+        reasons.append(
+            "📊 Volume Increasing"
         )
 
 
-    if data["ema"]:
+    # =========================
+    # 📈 Trend
+    # =========================
 
-        score+=20
+    if data["above_ema200"]:
+
+        score += 20
+
         reasons.append(
-        "📈 Trend Positive"
+            "📈 Price Above EMA200"
         )
 
 
-    if 45<data["rsi"]<70:
+    # =========================
+    # RSI
+    # =========================
 
-        score+=20
+    if 45 <= data["rsi"] <= 68:
+
+        score += 15
+
         reasons.append(
-        "✅ RSI Healthy"
+            "✅ Healthy RSI Zone"
+        )
+
+    elif 40 <= data["rsi"] <= 75:
+
+        score += 8
+
+        reasons.append(
+            "📊 RSI Acceptable"
         )
 
 
-    if data["change"]>2:
+    # =========================
+    # 🚀 Momentum
+    # =========================
 
-        score+=20
+    if 2 <= data["momentum"] <= 8:
+
+        score += 20
+
         reasons.append(
-        "🚀 Momentum"
+            "🚀 Early Momentum Detected"
+        )
+
+    elif 1 <= data["momentum"] < 2:
+
+        score += 10
+
+        reasons.append(
+            "📈 Momentum Starting"
         )
 
 
-    if score>80:
+    # =========================
+    # 💰 Accumulation
+    # =========================
+
+    if (
+        abs(data["price_change_20"]) < 5
+        and data["volume_ratio"] >= 2
+    ):
+
+        score += 15
 
         reasons.append(
-        "🔥 Strong Signal"
+            "💰 Possible Smart Money Accumulation"
         )
 
 
-    return score,reasons
+    # =========================
+    # Limit
+    # =========================
+
+    score = min(score, 100)
+
+
+    # =========================
+    # Signal Type
+    # =========================
+
+    if score >= 85:
+
+        signal = "🔥 STRONG OPPORTUNITY"
+
+    elif score >= 70:
+
+        signal = "🚀 HIGH POTENTIAL"
+
+    elif score >= 50:
+
+        signal = "👀 WATCHLIST"
+
+    else:
+
+        signal = "⚪ NO SIGNAL"
+
+
+    return {
+        "score": score,
+        "signal": signal,
+        "reasons": reasons
+    }
