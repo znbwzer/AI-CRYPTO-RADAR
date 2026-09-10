@@ -1,341 +1,298 @@
-async function fetchJSON(url) {
+// =====================================================
+// AI CRYPTO RADAR
+// DASHBOARD V1.1
+// =====================================================
 
-    const response =
-    await fetch(url);
 
-    if (!response.ok) {
+const marketTable =
+    document.getElementById("marketTable");
 
-        throw new Error(
-            "API Error"
+const coinCount =
+    document.getElementById("coinCount");
+
+const testResult =
+    document.getElementById("testResult");
+
+const binanceStatus =
+    document.getElementById("binanceStatus");
+
+
+// =====================================================
+// FORMAT PRICE
+// =====================================================
+
+function formatPrice(price) {
+
+    if (price >= 1000) {
+
+        return price.toLocaleString(
+            "en-US",
+            {
+                maximumFractionDigits: 2
+            }
         );
 
     }
 
-    return await response.json();
+    if (price >= 1) {
 
+        return price.toLocaleString(
+            "en-US",
+            {
+                maximumFractionDigits: 4
+            }
+        );
+
+    }
+
+    return price.toLocaleString(
+        "en-US",
+        {
+            maximumFractionDigits: 8
+        }
+    );
 }
 
 
+// =====================================================
+// FORMAT VOLUME
+// =====================================================
 
-async function loadStatus() {
+function formatVolume(volume) {
+
+    if (volume >= 1000000000) {
+
+        return (
+            "$" +
+            (volume / 1000000000).toFixed(2) +
+            "B"
+        );
+
+    }
+
+    if (volume >= 1000000) {
+
+        return (
+            "$" +
+            (volume / 1000000).toFixed(2) +
+            "M"
+        );
+
+    }
+
+    if (volume >= 1000) {
+
+        return (
+            "$" +
+            (volume / 1000).toFixed(2) +
+            "K"
+        );
+
+    }
+
+    return "$" + volume.toFixed(2);
+}
+
+
+// =====================================================
+// BINANCE TEST
+// =====================================================
+
+async function testBinance() {
 
     try {
 
+        testResult.innerHTML =
+            "⏳ جاري الاتصال بـ Binance...";
+
+        const response =
+            await fetch("/api/binance-test");
+
         const data =
-        await fetchJSON(
-            "/api/status"
-        );
+            await response.json();
 
 
-        const statusElement =
-        document.getElementById(
-            "status"
-        );
+        if (data.status === "ok") {
 
+            binanceStatus.innerHTML =
+                "🟢 Binance: Connected";
 
-        const scannerElement =
-        document.getElementById(
-            "scannerStatus"
-        );
+            testResult.innerHTML =
 
+                "🟢 <strong>Binance API متصل بنجاح</strong>" +
 
-        document.getElementById(
-            "lastScan"
-        ).textContent =
-        data.last_scan || "--";
+                "<br>" +
 
+                "Ping: " +
+                data.ping_ms +
+                " ms";
 
-        document.getElementById(
-            "coinsFound"
-        ).textContent =
-        data.coins_found || 0;
+        } else {
 
+            binanceStatus.innerHTML =
+                "🔴 Binance: Error";
 
-        if (data.last_error) {
-
-            statusElement.textContent =
-            "⚠️ Scanner Error";
-
-            statusElement.className =
-            "status error";
-
-        }
-
-        else if (data.running) {
-
-            statusElement.textContent =
-            "🟢 LIVE";
-
-            statusElement.className =
-            "status online";
-
-        }
-
-        else {
-
-            statusElement.textContent =
-            "🟡 Starting";
-
-            statusElement.className =
-            "status loading";
+            testResult.innerHTML =
+                "🔴 فشل الاتصال بـ Binance";
 
         }
 
 
-        scannerElement.textContent =
-        data.running
-        ? "🟢 Running"
-        : "🟡 Starting";
+    } catch (error) {
 
+        binanceStatus.innerHTML =
+            "🔴 Binance: Offline";
 
-    }
-
-    catch (error) {
-
-        console.error(error);
+        testResult.innerHTML =
+            "🔴 خطأ في الاتصال: " +
+            error.message;
 
     }
 
 }
 
 
+// =====================================================
+// LOAD MARKET
+// =====================================================
 
-function getScoreClass(score) {
-
-    if (score >= 85) {
-
-        return "high-score";
-
-    }
-
-    if (score >= 70) {
-
-        return "medium-score";
-
-    }
-
-    return "";
-
-}
-
-
-
-async function loadResults() {
+async function loadMarket() {
 
     try {
 
+        const response =
+            await fetch("/api/market");
+
         const data =
-        await fetchJSON(
-            "/api/results"
-        );
+            await response.json();
 
 
-        const table =
-        document.getElementById(
-            "results"
-        );
+        if (data.status !== "ok") {
 
+            marketTable.innerHTML =
 
-        const loading =
-        document.getElementById(
-            "loading"
-        );
-
-
-        table.innerHTML = "";
-
-
-        if (!data.length) {
-
-            loading.style.display =
-            "block";
+                `<tr>
+                    <td colspan="5">
+                        🔴 خطأ في بيانات Binance
+                    </td>
+                </tr>`;
 
             return;
 
         }
 
 
-        loading.style.display =
-        "none";
+        coinCount.innerText =
+            data.count + " زوج USDT";
 
 
-        data.forEach(
+        marketTable.innerHTML = "";
+
+
+        data.coins.forEach(
             (coin, index) => {
 
+                const change =
+                    coin.change_24h;
+
+                const changeClass =
+                    change >= 0
+                        ? "up"
+                        : "down";
+
+                const sign =
+                    change >= 0
+                        ? "+"
+                        : "";
+
+
                 const row =
-                document.createElement(
-                    "tr"
-                );
+                    document.createElement("tr");
 
 
                 row.innerHTML = `
 
-                    <td>${index + 1}</td>
-
                     <td>
-                        <strong>
+                        ${index + 1}
+                    </td>
+
+                    <td class="symbol">
                         ${coin.symbol}
-                        </strong>
                     </td>
 
-                    <td
-                    class="score ${getScoreClass(
-                        coin.score
-                    )}">
-
-                        ${coin.score}/100
-
+                    <td class="price">
+                        $${formatPrice(coin.price)}
                     </td>
 
-                    <td>
-                        ${coin.signal}
+                    <td class="${changeClass}">
+                        ${sign}${change.toFixed(2)}%
                     </td>
 
-                    <td>
-                        ${Number(
-                            coin.price
-                        ).toPrecision(7)}
-                    </td>
-
-                    <td>
-                        ${coin.rsi}
-                    </td>
-
-                    <td>
-                        ${coin.volume_ratio}x
-                    </td>
-
-                    <td
-                    class="reasons">
-
-                        ${coin.reasons.join(
-                            "<br>"
+                    <td class="volume">
+                        ${formatVolume(
+                            coin.quote_volume
                         )}
-
                     </td>
 
                 `;
 
 
-                table.appendChild(
-                    row
-                );
+                marketTable.appendChild(row);
 
             }
         );
 
 
-    }
+    } catch (error) {
 
-    catch (error) {
+        marketTable.innerHTML =
 
-        console.error(error);
-
-    }
-
-}
-
-
-
-async function loadHistory() {
-
-    try {
-
-        const data =
-        await fetchJSON(
-            "/api/signals"
-        );
-
-
-        const container =
-        document.getElementById(
-            "history"
-        );
-
-
-        if (!data.length) {
-
-            container.innerHTML =
-            "<p>No signals yet.</p>";
-
-            return;
-
-        }
-
-
-        container.innerHTML =
-        "";
-
-
-        data.slice(0, 20)
-        .forEach(signal => {
-
-            const item =
-            document.createElement(
-                "div"
-            );
-
-
-            item.className =
-            "history-item";
-
-
-            item.innerHTML = `
-
-                <strong>
-                    ${signal.symbol}
-                </strong>
-
-                — Score:
-                ${signal.score}/100
-
-                <br>
-
-                Price:
-                ${signal.price}
-
-                <br>
-
-                ${signal.reasons}
-
-            `;
-
-
-            container.appendChild(
-                item
-            );
-
-        });
-
-
-    }
-
-    catch (error) {
-
-        console.error(error);
+            `<tr>
+                <td colspan="5">
+                    🔴 تعذر تحميل السوق
+                </td>
+            </tr>`;
 
     }
 
 }
 
 
+// =====================================================
+// START
+// =====================================================
 
-async function loadData() {
+async function startRadar() {
 
-    await loadStatus();
+    await testBinance();
 
-    await loadResults();
-
-    await loadHistory();
+    await loadMarket();
 
 }
 
 
+// =====================================================
+// INITIAL
+// =====================================================
 
-loadData();
+startRadar();
 
+
+// =====================================================
+// REFRESH
+// =====================================================
+
+// كل 30 ثانية فقط في هذه المرحلة
 
 setInterval(
-    loadData,
-    10000
+    loadMarket,
+    30000
+);
+
+
+// اختبار Binance كل دقيقتين
+
+setInterval(
+    testBinance,
+    120000
 );
