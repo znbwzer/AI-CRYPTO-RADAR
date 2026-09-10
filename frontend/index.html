@@ -1,196 +1,171 @@
 <!DOCTYPE html>
-
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
 
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
 
-<meta
-name="viewport"
-content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-<title>
-AI CRYPTO RADAR
-</title>
+    <title>AI CRYPTO RADAR</title>
 
-<link
-rel="stylesheet"
-href="/static/style.css">
+    <link
+        rel="stylesheet"
+        href="/static/style.css"
+    >
 
 </head>
 
 
 <body>
 
-
 <div class="container">
 
+    <header>
 
-<header>
+        <div class="logo">
+            🐋
+        </div>
 
-<div>
+        <div>
 
-<h1>
-🐋 AI CRYPTO RADAR
-</h1>
+            <h1>
+                AI CRYPTO RADAR
+            </h1>
 
-<p>
-Smart Money & Early Pump Scanner
-</p>
+            <p>
+                Binance Spot Intelligence
+            </p>
+
+        </div>
+
+    </header>
+
+
+    <!-- SYSTEM -->
+
+    <section class="status-card">
+
+        <div>
+
+            <span class="status-dot"></span>
+
+            <strong>
+                SYSTEM ONLINE
+            </strong>
+
+        </div>
+
+        <div id="binanceStatus">
+            Binance: Checking...
+        </div>
+
+    </section>
+
+
+    <!-- TEST -->
+
+    <section class="test-card">
+
+        <h2>
+            🔌 اتصال Binance
+        </h2>
+
+        <div id="testResult">
+            جاري الاختبار...
+        </div>
+
+    </section>
+
+
+    <!-- MARKET -->
+
+    <section class="market-card">
+
+        <div class="section-title">
+
+            <h2>
+                📊 أعلى العملات تداولًا
+            </h2>
+
+            <span id="coinCount">
+                --
+            </span>
+
+        </div>
+
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            #
+                        </th>
+
+                        <th>
+                            العملة
+                        </th>
+
+                        <th>
+                            السعر
+                        </th>
+
+                        <th>
+                            24H
+                        </th>
+
+                        <th>
+                            Volume
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="marketTable">
+
+                    <tr>
+
+                        <td colspan="5">
+                            جاري تحميل بيانات Binance...
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <footer>
+
+        AI CRYPTO RADAR V1.1
+
+        <br>
+
+        Market data only — no automatic trading
+
+    </footer>
 
 </div>
 
 
-<div id="status"
-class="status loading">
-
-Connecting...
-
-</div>
-
-
-</header>
-
-
-
-<div class="stats">
-
-
-<div class="card">
-
-<span>
-Scanner Status
-</span>
-
-<strong id="scannerStatus">
-Loading...
-</strong>
-
-</div>
-
-
-<div class="card">
-
-<span>
-Last Scan
-</span>
-
-<strong id="lastScan">
---
-</strong>
-
-</div>
-
-
-<div class="card">
-
-<span>
-Opportunities
-</span>
-
-<strong id="coinsFound">
-0
-</strong>
-
-</div>
-
-
-</div>
-
-
-
-<div class="section-header">
-
-<h2>
-🔥 TOP OPPORTUNITIES
-</h2>
-
-<button onclick="loadData()">
-
-🔄 Refresh
-
-</button>
-
-</div>
-
-
-
-<div id="loading">
-
-🐋 Scanning Binance Market...
-
-</div>
-
-
-<div class="table-wrapper">
-
-<table>
-
-<thead>
-
-<tr>
-
-<th>#</th>
-
-<th>Coin</th>
-
-<th>Score</th>
-
-<th>Signal</th>
-
-<th>Price</th>
-
-<th>RSI</th>
-
-<th>Volume</th>
-
-<th>Reasons</th>
-
-</tr>
-
-</thead>
-
-
-<tbody id="results">
-
-</tbody>
-
-
-</table>
-
-</div>
-
-
-
-<h2 class="history-title">
-
-📜 Signal History
-
-</h2>
-
-
-<div id="history">
-
-Loading...
-
-</div>
-
-
-<footer>
-
-AI CRYPTO RADAR V1<br>
-
-⚠️ Scanner for analysis only.
-Not financial advice.
-
-</footer>
-
-
-</div>
-
-
-<script src="/static/dashboard.js"></script>
+<script
+    src="/static/dashboard.js">
+</script>
 
 </body>
 
