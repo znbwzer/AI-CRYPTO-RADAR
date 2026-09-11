@@ -3,169 +3,153 @@
 
 <head>
 
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
 
-    <title>AI CRYPTO RADAR</title>
+<title>AI CRYPTO RADAR</title>
 
-    <link
-        rel="stylesheet"
-        href="/static/style.css"
-    >
+<link rel="stylesheet"
+href="/static/style.css">
 
 </head>
-
 
 <body>
 
 <div class="container">
 
-    <header>
+<header>
 
-        <div class="logo">
-            🐋
-        </div>
+<div class="logo">🐋</div>
 
-        <div>
+<div>
 
-            <h1>
-                AI CRYPTO RADAR
-            </h1>
+<h1>AI CRYPTO RADAR</h1>
 
-            <p>
-                Binance Spot Intelligence
-            </p>
+<p>Binance Spot Early Intelligence</p>
 
-        </div>
+</div>
 
-    </header>
+</header>
 
 
-    <!-- SYSTEM -->
+<section class="status-card">
 
-    <section class="status-card">
+<div>
 
-        <div>
+<span class="status-dot"></span>
 
-            <span class="status-dot"></span>
+<strong>SYSTEM ONLINE</strong>
 
-            <strong>
-                SYSTEM ONLINE
-            </strong>
+</div>
 
-        </div>
+<div id="binanceStatus">
+Binance: Checking...
+</div>
 
-        <div id="binanceStatus">
-            Binance: Checking...
-        </div>
-
-    </section>
+</section>
 
 
-    <!-- TEST -->
+<section class="test-card">
 
-    <section class="test-card">
+<h2>🤖 AI RADAR</h2>
 
-        <h2>
-            🔌 اتصال Binance
-        </h2>
+<div id="radarStatus">
+جاري تشغيل الرادار...
+</div>
 
-        <div id="testResult">
-            جاري الاختبار...
-        </div>
-
-    </section>
+</section>
 
 
-    <!-- MARKET -->
+<section class="top-card">
 
-    <section class="market-card">
+<h2>🔥 TOP 5 OPPORTUNITIES</h2>
 
-        <div class="section-title">
+<div id="top5">
 
-            <h2>
-                📊 أعلى العملات تداولًا
-            </h2>
+جاري تحليل السوق...
 
-            <span id="coinCount">
-                --
-            </span>
+</div>
 
-        </div>
+</section>
 
 
-        <div class="table-wrapper">
+<section class="market-card">
 
-            <table>
+<div class="section-title">
 
-                <thead>
+<h2>📡 Radar Scanner</h2>
 
-                    <tr>
-
-                        <th>
-                            #
-                        </th>
-
-                        <th>
-                            العملة
-                        </th>
-
-                        <th>
-                            السعر
-                        </th>
-
-                        <th>
-                            24H
-                        </th>
-
-                        <th>
-                            Volume
-                        </th>
-
-                    </tr>
-
-                </thead>
-
-
-                <tbody id="marketTable">
-
-                    <tr>
-
-                        <td colspan="5">
-                            جاري تحميل بيانات Binance...
-                        </td>
-
-                    </tr>
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </section>
-
-
-    <footer>
-
-        AI CRYPTO RADAR V1.1
-
-        <br>
-
-        Market data only — no automatic trading
-
-    </footer>
+<span id="scanInfo">
+--
+</span>
 
 </div>
 
 
-<script
-    src="/static/dashboard.js">
-</script>
+<div class="table-wrapper">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>#</th>
+
+<th>العملة</th>
+
+<th>الإشارة</th>
+
+<th>Score</th>
+
+<th>RSI</th>
+
+<th>Volume</th>
+
+<th>24H</th>
+
+</tr>
+
+</thead>
+
+
+<tbody id="radarTable">
+
+<tr>
+
+<td colspan="7">
+
+جاري فحص العملات...
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</section>
+
+
+<footer>
+
+AI CRYPTO RADAR V1.2
+
+<br>
+
+Early detection — No automatic trading
+
+</footer>
+
+</div>
+
+
+<script src="/static/dashboard.js"></script>
 
 </body>
 
