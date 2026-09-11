@@ -1,25 +1,18 @@
-// =====================================================
-// AI CRYPTO RADAR
-// DASHBOARD V1.1
-// =====================================================
+const radarTable =
+    document.getElementById("radarTable");
 
+const top5 =
+    document.getElementById("top5");
 
-const marketTable =
-    document.getElementById("marketTable");
+const radarStatus =
+    document.getElementById("radarStatus");
 
-const coinCount =
-    document.getElementById("coinCount");
-
-const testResult =
-    document.getElementById("testResult");
+const scanInfo =
+    document.getElementById("scanInfo");
 
 const binanceStatus =
     document.getElementById("binanceStatus");
 
-
-// =====================================================
-// FORMAT PRICE
-// =====================================================
 
 function formatPrice(price) {
 
@@ -54,59 +47,322 @@ function formatPrice(price) {
 }
 
 
-// =====================================================
-// FORMAT VOLUME
-// =====================================================
-
 function formatVolume(volume) {
 
     if (volume >= 1000000000) {
 
-        return (
-            "$" +
-            (volume / 1000000000).toFixed(2) +
-            "B"
-        );
+        return "$" +
+            (volume / 1000000000)
+            .toFixed(2) +
+            "B";
 
     }
 
     if (volume >= 1000000) {
 
-        return (
-            "$" +
-            (volume / 1000000).toFixed(2) +
-            "M"
-        );
+        return "$" +
+            (volume / 1000000)
+            .toFixed(2) +
+            "M";
 
     }
 
     if (volume >= 1000) {
 
-        return (
-            "$" +
-            (volume / 1000).toFixed(2) +
-            "K"
-        );
+        return "$" +
+            (volume / 1000)
+            .toFixed(2) +
+            "K";
 
     }
 
-    return "$" + volume.toFixed(2);
+    return "$" +
+        volume.toFixed(2);
 }
 
 
-// =====================================================
-// BINANCE TEST
-// =====================================================
+function scoreClass(score) {
 
-async function testBinance() {
+    if (score >= 85)
+        return "up";
+
+    if (score >= 75)
+        return "up";
+
+    if (score >= 65)
+        return "";
+
+    return "down";
+}
+
+
+function renderTop5(coins) {
+
+    if (!coins || coins.length === 0) {
+
+        top5.innerHTML =
+            "لا توجد فرص قوية حاليًا";
+
+        return;
+    }
+
+
+    top5.innerHTML = "";
+
+
+    coins.forEach(
+        (coin, index) => {
+
+            const card =
+                document.createElement("div");
+
+            card.style.padding = "14px";
+
+            card.style.marginBottom = "10px";
+
+            card.style.borderRadius = "12px";
+
+            card.style.background =
+                "#0d131b";
+
+            card.style.border =
+                "1px solid #26313e";
+
+
+            card.innerHTML = `
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    gap:10px;
+                ">
+
+                    <strong>
+                        ${index + 1}.
+                        ${coin.symbol}
+                    </strong>
+
+                    <strong class="${scoreClass(
+                        coin.confidence
+                    )}">
+                        ${coin.confidence}/100
+                    </strong>
+
+                </div>
+
+                <div style="
+                    margin-top:8px;
+                    font-size:14px;
+                ">
+
+                    ${coin.signal}
+
+                </div>
+
+                <div style="
+                    margin-top:8px;
+                    font-size:12px;
+                    color:#8f9aaa;
+                ">
+
+                    RSI ${coin.rsi}
+                    &nbsp; | &nbsp;
+
+                    Volume x${coin.volume_ratio}
+                    &nbsp; | &nbsp;
+
+                    Momentum ${coin.momentum_5m}%
+
+                </div>
+            `;
+
+
+            top5.appendChild(card);
+
+        }
+    );
+}
+
+
+function renderRadar(coins) {
+
+    radarTable.innerHTML = "";
+
+
+    coins.forEach(
+        (coin, index) => {
+
+            const row =
+                document.createElement("tr");
+
+
+            const change =
+                coin.change_24h;
+
+
+            const changeClass =
+                change >= 0
+                    ? "up"
+                    : "down";
+
+
+            const sign =
+                change >= 0
+                    ? "+"
+                    : "";
+
+
+            row.innerHTML = `
+
+                <td>
+                    ${index + 1}
+                </td>
+
+                <td class="symbol">
+                    ${coin.symbol}
+                </td>
+
+                <td>
+                    ${coin.signal}
+                </td>
+
+                <td class="${scoreClass(
+                    coin.confidence
+                )}">
+
+                    <strong>
+                        ${coin.confidence}
+                    </strong>
+
+                </td>
+
+                <td>
+                    ${coin.rsi}
+                </td>
+
+                <td class="volume">
+
+                    x${coin.volume_ratio}
+
+                </td>
+
+                <td class="${changeClass}">
+
+                    ${sign}${change.toFixed(2)}%
+
+                </td>
+
+            `;
+
+
+            radarTable.appendChild(row);
+
+        }
+    );
+}
+
+
+async function runRadar() {
 
     try {
 
-        testResult.innerHTML =
-            "⏳ جاري الاتصال بـ Binance...";
+        radarStatus.innerHTML =
+            "⏳ جاري فحص السوق وتحليل العملات...";
+
 
         const response =
-            await fetch("/api/binance-test");
+            await fetch(
+                "/api/radar",
+                {
+                    cache: "no-store"
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (data.status !== "ok") {
+
+            throw new Error(
+                data.error ||
+                "Radar error"
+            );
+
+        }
+
+
+        binanceStatus.innerHTML =
+            "🟢 Binance: Connected";
+
+
+        radarStatus.innerHTML =
+
+            "🟢 الرادار يعمل بنجاح" +
+            "<br>" +
+            "تم تحليل " +
+            data.analyzed +
+            " من " +
+            data.scanned +
+            " عملة";
+
+
+        scanInfo.innerText =
+            data.analyzed +
+            " عملة";
+
+
+        renderTop5(
+            data.top5
+        );
+
+
+        renderRadar(
+            data.coins
+        );
+
+
+    } catch (error) {
+
+        binanceStatus.innerHTML =
+            "🔴 Binance: Error";
+
+
+        radarStatus.innerHTML =
+            "🔴 خطأ: " +
+            error.message;
+
+
+        radarTable.innerHTML = `
+
+            <tr>
+
+                <td colspan="7">
+
+                    🔴 تعذر تشغيل الرادار
+
+                </td>
+
+            </tr>
+
+        `;
+
+    }
+
+}
+
+
+async function checkBinance() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/binance-test"
+            );
+
 
         const data =
             await response.json();
@@ -117,182 +373,50 @@ async function testBinance() {
             binanceStatus.innerHTML =
                 "🟢 Binance: Connected";
 
-            testResult.innerHTML =
-
-                "🟢 <strong>Binance API متصل بنجاح</strong>" +
-
-                "<br>" +
-
-                "Ping: " +
-                data.ping_ms +
-                " ms";
-
         } else {
 
             binanceStatus.innerHTML =
                 "🔴 Binance: Error";
 
-            testResult.innerHTML =
-                "🔴 فشل الاتصال بـ Binance";
-
         }
 
-
-    } catch (error) {
+    } catch {
 
         binanceStatus.innerHTML =
             "🔴 Binance: Offline";
 
-        testResult.innerHTML =
-            "🔴 خطأ في الاتصال: " +
-            error.message;
-
     }
 
 }
 
 
-// =====================================================
-// LOAD MARKET
-// =====================================================
+async function start() {
 
-async function loadMarket() {
+    await checkBinance();
 
-    try {
-
-        const response =
-            await fetch("/api/market");
-
-        const data =
-            await response.json();
-
-
-        if (data.status !== "ok") {
-
-            marketTable.innerHTML =
-
-                `<tr>
-                    <td colspan="5">
-                        🔴 خطأ في بيانات Binance
-                    </td>
-                </tr>`;
-
-            return;
-
-        }
-
-
-        coinCount.innerText =
-            data.count + " زوج USDT";
-
-
-        marketTable.innerHTML = "";
-
-
-        data.coins.forEach(
-            (coin, index) => {
-
-                const change =
-                    coin.change_24h;
-
-                const changeClass =
-                    change >= 0
-                        ? "up"
-                        : "down";
-
-                const sign =
-                    change >= 0
-                        ? "+"
-                        : "";
-
-
-                const row =
-                    document.createElement("tr");
-
-
-                row.innerHTML = `
-
-                    <td>
-                        ${index + 1}
-                    </td>
-
-                    <td class="symbol">
-                        ${coin.symbol}
-                    </td>
-
-                    <td class="price">
-                        $${formatPrice(coin.price)}
-                    </td>
-
-                    <td class="${changeClass}">
-                        ${sign}${change.toFixed(2)}%
-                    </td>
-
-                    <td class="volume">
-                        ${formatVolume(
-                            coin.quote_volume
-                        )}
-                    </td>
-
-                `;
-
-
-                marketTable.appendChild(row);
-
-            }
-        );
-
-
-    } catch (error) {
-
-        marketTable.innerHTML =
-
-            `<tr>
-                <td colspan="5">
-                    🔴 تعذر تحميل السوق
-                </td>
-            </tr>`;
-
-    }
+    await runRadar();
 
 }
 
 
-// =====================================================
-// START
-// =====================================================
-
-async function startRadar() {
-
-    await testBinance();
-
-    await loadMarket();
-
-}
+start();
 
 
-// =====================================================
-// INITIAL
-// =====================================================
-
-startRadar();
-
-
-// =====================================================
-// REFRESH
-// =====================================================
-
-// كل 30 ثانية فقط في هذه المرحلة
+/*
+   تحديث الرادار كل دقيقة
+*/
 
 setInterval(
-    loadMarket,
-    30000
+    runRadar,
+    60000
 );
 
 
-// اختبار Binance كل دقيقتين
+/*
+   فحص الاتصال كل دقيقتين
+*/
 
 setInterval(
-    testBinance,
+    checkBinance,
     120000
 );
