@@ -17,7 +17,7 @@ app = FastAPI(
 # CONFIG
 # =========================================================
 
-BINANCE_API = "https://api.binance.com"
+BINANCE_API = "https://data-api.binance.vision"
 
 BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR / "frontend"
