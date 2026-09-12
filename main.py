@@ -9,13 +9,13 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
 from pathlib import Path
 
-APP_VERSION = "V2.0-MTF-ACCUMULATION"
+APP_VERSION = "V2.1-MTF-ACCUMULATION-FIXED"
 BINANCE_API = "https://data-api.binance.vision"
 TIMEOUT = 10
 CACHE_SECONDS = 45
-UNIVERSE_LIMIT = 160
-STRUCTURE_LIMIT = 32
-DEEP_LIMIT = 12
+UNIVERSE_LIMIT = 0  # 0 = scan every eligible Spot USDT pair
+STRUCTURE_LIMIT = 30
+DEEP_LIMIT = 15
 MAX_WORKERS = 12
 
 app = FastAPI(title="AI CRYPTO RADAR", version=APP_VERSION)
@@ -28,6 +28,7 @@ SCAN_LOCK = Lock()
 CACHE_LOCK = Lock()
 RADAR_CACHE = {"status": "warming_up", "data": [], "scan_seconds": 0, "updated_at": 0}
 KLINE_CACHE = {}
+KLINE_ERRORS = {}
 EXCHANGE_CACHE = {"data": None, "ts": 0}
 TICKER_CACHE = {"data": None, "ts": 0}
 
@@ -131,7 +132,8 @@ def get_klines(symbol, interval, limit=100):
         data = request_json("/api/v3/klines", {"symbol": symbol, "interval": interval, "limit": limit})
         KLINE_CACHE[key] = (now, data)
         return data
-    except Exception:
+    except Exception as e:
+        KLINE_ERRORS[f"{symbol}:{interval}"] = {"error": str(e), "time": int(time.time()*1000)}
         return []
 
 
@@ -359,8 +361,12 @@ def candidate_universe():
         eligible.append(t)
     top_liq = sorted(eligible, key=lambda x: float(x.get("quoteVolume", 0)), reverse=True)[:120]
     top_move = sorted(eligible, key=lambda x: float(x.get("priceChangePercent", 0)), reverse=True)[:80]
-    merged = {x["symbol"]: x for x in top_liq + top_move}
-    return list(merged.values())[:UNIVERSE_LIMIT]
+    merged = {x["symbol"]: x for x in eligible}
+    values = list(merged.values())
+    values.sort(key=lambda x: float(x.get("quoteVolume", 0) or 0), reverse=True)
+    if UNIVERSE_LIMIT and len(values) > UNIVERSE_LIMIT:
+        values = values[:UNIVERSE_LIMIT]
+    return values
 
 
 def base_scan_item(ticker):
@@ -514,7 +520,7 @@ def run_radar_scan():
 
     results = []
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as ex:
-        futures = [ex.submit(deep_analyze, x) for x in selected[:STRUCTURE_LIMIT]]
+        futures = [ex.submit(deep_analyze, x) for x in selected[:DEEP_LIMIT]]
         for fut in as_completed(futures):
             try:
                 x = fut.result()
@@ -529,6 +535,10 @@ def run_radar_scan():
         "version": APP_VERSION,
         "scanned_universe": len(universe),
         "structure_candidates": len(selected),
+        "deep_analyzed": len(results),
+        "base_success": len(bases),
+        "base_failed": max(0, len(universe) - len(bases)),
+        "kline_errors": dict(list(KLINE_ERRORS.items())[-20:]),
         "results": results,
         "top5": results[:5],
         "scan_seconds": elapsed,
@@ -580,6 +590,42 @@ def binance_test():
 @app.get("/api/radar")
 def radar():
     return get_cached_or_scan()
+
+
+@app.get("/api/debug")
+def debug():
+    try:
+        info = get_exchange_info()
+        tickers = get_24h_tickers()
+        samples = {}
+        sample_symbols = ["BTCUSDT", "ETHUSDT", "SOLUSDT"]
+        for symbol in sample_symbols:
+            raw = get_klines(symbol, "15m", 10)
+            samples[symbol] = {"klines": len(raw), "error": KLINE_ERRORS.get(f"{symbol}:15m")}
+        eligible = 0
+        symbols = []
+        ticker_map = {x.get("symbol"): x for x in tickers if x.get("symbol")}
+        for x in info.get("symbols", []):
+            if x.get("status") == "TRADING" and x.get("quoteAsset") == "USDT":
+                base = x.get("baseAsset", "")
+                if base not in STABLE_BASES and not base.endswith(LEVERAGED_SUFFIXES):
+                    t = ticker_map.get(x.get("symbol"), {})
+                    if float(t.get("quoteVolume", 0) or 0) >= 100_000:
+                        eligible += 1
+                        if len(symbols) < 10:
+                            symbols.append(x.get("symbol"))
+        return {
+            "status": "ok",
+            "version": APP_VERSION,
+            "exchange_symbols": len(info.get("symbols", [])),
+            "ticker_rows": len(tickers),
+            "eligible_spot_usdt": eligible,
+            "sample_symbols": symbols,
+            "sample_15m": samples,
+            "recent_kline_errors": dict(list(KLINE_ERRORS.items())[-20:])
+        }
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
 
 
 @app.get("/api/status")
