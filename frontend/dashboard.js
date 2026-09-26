@@ -1,7 +1,7 @@
 const $=id=>document.getElementById(id);
 let DATA=[],STRATS={},ACTIVE='scalp';
 
-/* ---------- utils ---------- */
+/* ============ utils ============ */
 async function j(u){const r=await fetch(u);if(!r.ok)throw Error('HTTP '+r.status);return r.json()}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function n(v,d=1){return v==null?'—':Number(v).toFixed(d)}
@@ -10,32 +10,26 @@ function arrow(d){return d==='↑'?'<span class="up">↑</span>':d==='↓'?'<spa
 function trend(v,dir='→',d=1,suf=''){return `${n(v,d)}% ${arrow(dir)}${suf}`}
 function seq(a){return (a||[]).map(x=>`<span>${n(x,2)}x</span>`).join(' → ')||'—'}
 function stat(a,b,cls=''){return `<div class="stat ${cls}"><span>${a}</span><b>${b??'—'}</b></div>`}
+function stage(c){return c.stage==='CONFIRMED_EXPANSION'?'🟢 توسع مؤكد':c.stage==='PRE_BREAKOUT'?'🟨 قبل الاختراق':c.stage==='STEALTH_ACCUMULATION'?'🟦 تجميع خفي':'👀 مراقبة'}
 
-function stage(c){
-  return c.stage==='CONFIRMED_EXPANSION'?'🟢 توسع مؤكد'
-    :c.stage==='PRE_BREAKOUT'?'🟨 قبل الاختراق'
-    :c.stage==='STEALTH_ACCUMULATION'?'🟦 تجميع خفي'
-    :'👀 مراقبة';
-}
-
-/* ---------- MOON SCORE / TIER ---------- */
+/* ============ MOON / TIER ============ */
 function moonScore(c){
   const e=+c.early_moon_ratio||0;
   const f=+c.freshness||55;
   const a=+c.accumulation||0;
   const flow=((+c.cvd||0)+(+c.whale_hunter||0))/2;
   const mom=+c.momentum||50;
-  const pen=Math.max(0,mom-60)*0.55; // عقوبة التمدد
-  return Math.max(0,Math.min(100, e*0.52 + a*0.15 + flow*0.18 + f*0.15 - pen));
+  const pen=Math.max(0,mom-60)*0.55;
+  return Math.max(0,Math.min(100,e*0.52+a*0.15+flow*0.18+f*0.15-pen));
 }
 function tierOf(s){
   s=+s||0;
-  if(s>=72) return {t:'S',label:'🌙🌙🌙 إلى القمر',cls:'tier-s'};
-  if(s>=62) return {t:'A',label:'🌙🌙 قريب جدًا',cls:'tier-a'};
-  if(s>=52) return {t:'B',label:'🌙 فرصة واعدة',cls:'tier-b'};
-  return {t:'C',label:'👀 مراقبة',cls:'tier-c'};
+  if(s>=72)return{t:'S',label:'🌙🌙🌙 إلى القمر',cls:'tier-s'};
+  if(s>=62)return{t:'A',label:'🌙🌙 قريب جدًا',cls:'tier-a'};
+  if(s>=52)return{t:'B',label:'🌙 فرصة واعدة',cls:'tier-b'};
+  return{t:'C',label:'👀 مراقبة',cls:'tier-c'};
 }
-function gauge(s){
+function gauge(s,size){
   s=Math.max(0,Math.min(100,+s||0));
   const r=26,C=2*Math.PI*r,off=C-(s/100)*C;
   return `<svg class="gauge" viewBox="0 0 64 64" aria-hidden="true">
@@ -44,11 +38,11 @@ function gauge(s){
     <text class="gauge-num" x="32" y="37" text-anchor="middle">${Math.round(s)}</text>
   </svg>`;
 }
-function spark(closes){
-  if(!Array.isArray(closes)||closes.length<6) return '';
+function spark(closes,big){
+  if(!Array.isArray(closes)||closes.length<6)return '';
   const pts=closes.slice(-30).map(Number).filter(x=>isFinite(x));
-  if(pts.length<6) return '';
-  const W=200,H=34,min=Math.min(...pts),max=Math.max(...pts),rng=(max-min)||1;
+  if(pts.length<6)return '';
+  const W=200,H=big?52:34,min=Math.min(...pts),max=Math.max(...pts),rng=(max-min)||1;
   const step=W/(pts.length-1);
   const d=pts.map((v,i)=>`${i?'L':'M'}${(i*step).toFixed(1)},${(H-((v-min)/rng)*(H-4)-2).toFixed(1)}`).join(' ');
   const up=pts[pts.length-1]>=pts[0];
@@ -64,7 +58,7 @@ function spark(closes){
   </svg>`;
 }
 
-/* ---------- CONFIRMATION BLOCK ---------- */
+/* ============ CONFIRMATION ============ */
 function confBox(c){
   const co=c.confirmation||{};
   const miss=(co.missing||[]).slice(0,5);
@@ -75,25 +69,26 @@ function confBox(c){
   </div>`;
 }
 
-/* ---------- CARD (premium) ---------- */
-function card(c,rank='',score=null,highlight=false){
+/* ============ COIN CARD ============ */
+function card(c,rank='',score=null,mode='main'){
   const m=moonScore(c);
   const useScore=score==null?m:score;
   const tier=tierOf(m);
   const ch=+c.change24h||0;
-  return `<article class="coin ${highlight?'main':''}" data-symbol="${esc(c.symbol)}">
+  const heroCls=mode==='hero'?'hero1':mode==='main'?'main':'';
+  return `<article class="coin ${heroCls}" data-symbol="${esc(c.symbol)}">
     <div class="coin-top">
       <span class="rank">${rank||stage(c)}</span>
       <span class="symbol">${esc(c.symbol)}</span>
     </div>
     <div class="moon-row">
-      ${gauge(m)}
+      ${gauge(m,mode==='hero')}
       <div class="moon-meta">
         <div class="tier-label"><span class="tier-badge ${tier.cls}">${tier.t}</span>${tier.label}</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Moon Score • ${Math.round(m)}/100</div>
       </div>
     </div>
-    ${spark(c.closes)}
+    ${spark(c.closes,mode==='hero')}
     <div class="price">${money(c.price)} <small>${ch>=0?'+':''}${n(ch,2)}%</small></div>
     <div class="score"><span>قوة الإشارة</span><b>${n(useScore)}</b></div>
     <div class="bar"><i style="width:${Math.max(0,Math.min(100,useScore))}%"></i></div>
@@ -109,7 +104,118 @@ function card(c,rank='',score=null,highlight=false){
   </article>`;
 }
 
-/* ---------- MODES ---------- */
+/* ============ WHALE SONAR ============ */
+function sonarScore(c){
+  const cvd=+c.cvd||50, wh=+c.whale_hunter||50, liq=+c.liquidity||50;
+  const live_cvd=+c.live_cvd||cvd, live_wh=+c.live_whale||wh;
+  const taker=(+c.taker_buy_ratio||.5)*100;
+  const depth=+c.volume_pressure||50;
+  return Math.max(0,Math.min(100,(cvd*.22+wh*.24+liq*.16+live_cvd*.12+live_wh*.12+taker*.08+depth*.06)));
+}
+function renderRadar(coin){
+  const box=$('radarViz');
+  if(!coin){box.innerHTML='<div class="empty" style="border:0;background:transparent">لا توجد بيانات</div>';$('radarSymbol').textContent='—';$('radarLegend').innerHTML='';return;}
+  const cvd=+coin.cvd||50, wh=+coin.whale_hunter||50, liq=+coin.liquidity||50, vp=+coin.volume_profile||50;
+  const total=sonarScore(coin);
+  // 4 concentric rings
+  const rings=[
+    {r:110,val:liq,col:'#3b9eff',label:'السيولة'},
+    {r:88,val:cvd,col:'#00d68f',label:'CVD'},
+    {r:66,val:wh,col:'#8b5cf6',label:'الحيتان'},
+    {r:44,val:vp,col:'#ffc857',label:'Vol Profile'},
+  ];
+  const C=r=>2*Math.PI*r;
+  const ringSvg=rings.map(x=>{
+    const cc=C(x.r),off=cc-(x.val/100)*cc;
+    return `<circle class="radar-ring" cx="180" cy="180" r="${x.r}"
+      stroke="${x.col}" stroke-width="7" stroke-dasharray="${cc.toFixed(2)}" stroke-dashoffset="${off.toFixed(2)}"
+      opacity="0.85"/>`;
+  }).join('');
+  // center text
+  const center=`<text x="180" y="172" text-anchor="middle" font-size="12" fill="#8ea4bc">Sonar Score</text>
+    <text x="180" y="202" text-anchor="middle" font-size="34" font-weight="900" fill="#ffc857">${Math.round(total)}</text>`;
+  box.innerHTML=`<svg viewBox="0 0 360 360">${ringSvg}${center}</svg>`;
+  $('radarSymbol').textContent=coin.symbol;
+  $('radarLegend').innerHTML=rings.map(x=>`
+    <div class="row-l">
+      <span class="swatch" style="background:${x.col}"></span>
+      <span>${x.label}</span>
+      <b>${Math.round(x.val)}</b>
+    </div>`).join('');
+}
+
+function renderWhaleFlow(){
+  const box=$('whaleFlow');
+  const arr=DATA.slice(0,8);
+  if(!arr.length){box.innerHTML='<div class="empty">لا توجد بيانات</div>';return;}
+  box.innerHTML=arr.map(c=>{
+    // approximate buy/sell split from taker_buy_ratio & live data
+    const taker=+c.taker_buy_ratio||.5;
+    const liveCvd=+c.live_cvd||50;
+    const buyPct=Math.round(Math.max(5,Math.min(95,(taker*60 + liveCvd*0.4))));
+    const sellPct=100-buyPct;
+    const net=buyPct-sellPct;
+    const cls=net>2?'pos':net<-2?'neg':'zero';
+    return `<div class="wf-row" data-symbol="${esc(c.symbol)}">
+      <span class="sym">${esc(c.symbol)}</span>
+      <div class="wf-bar">
+        <i class="buy" style="right:${100-buyPct}%"></i>
+        <i class="sell" style="left:${100-sellPct}%"></i>
+        <i class="mid"></i>
+      </div>
+      <span class="net ${cls}">${net>0?'+':''}${net}%</span>
+    </div>`;
+  }).join('');
+}
+
+function renderSmartMap(){
+  const box=$('smartMap');
+  const arr=DATA.slice().sort((a,b)=>sonarScore(b)-sonarScore(a)).slice(0,20);
+  if(!arr.length){box.innerHTML='<div class="empty">لا توجد بيانات</div>';return;}
+  box.innerHTML=arr.map(c=>{
+    const s=sonarScore(c);
+    const wh=+c.whale_hunter||50;
+    // gradient from cool (blue) → hot (gold) based on whale
+    const hue=wh>=75?42:wh>=60?200:wh>=45?220:0;
+    const sat=wh>=75?90:wh>=60?80:wh>=45?60:40;
+    const light=wh>=75?55:wh>=60?40:wh>=45?28:22;
+    const bg=`hsl(${hue} ${sat}% ${light}% / ${(0.25+wh/200).toFixed(2)})`;
+    const cls=wh>=75?'hot':wh<40?'neg':'cool';
+    return `<div class="sm-cell ${cls}" data-symbol="${esc(c.symbol)}" style="background:${bg}">
+      <span class="sm-sym">${esc(c.symbol.replace('USDT',''))}</span>
+      <span class="sm-val">${Math.round(s)}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderLiqLadder(){
+  const box=$('liqLadder');
+  const arr=DATA.slice(0,14);
+  if(!arr.length){box.innerHTML='<div class="empty">لا توجد بيانات</div>';return;}
+  box.innerHTML=arr.map(c=>{
+    const liq=+c.liquidity||0;
+    const cvd=+c.cvd||50;
+    const wh=+c.whale_hunter||50;
+    const cvdCls=cvd>=58?'hot':cvd<=42?'cold':'';
+    const whCls=wh>=60?'hot':wh<=40?'cold':'';
+    return `<div class="ll-row" data-symbol="${esc(c.symbol)}">
+      <span class="sym">${esc(c.symbol.replace('USDT',''))}</span>
+      <div class="bar-wrap"><i style="width:${Math.max(2,liq)}%"></i></div>
+      <span class="cvd ${cvdCls}">${Math.round(cvd)}</span>
+      <span class="whale ${whCls}">${Math.round(wh)}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderSonar(){
+  const top=DATA.slice().sort((a,b)=>moonScore(b)-moonScore(a))[0];
+  renderRadar(top);
+  renderWhaleFlow();
+  renderSmartMap();
+  renderLiqLadder();
+}
+
+/* ============ MODES ============ */
 const desc={
   scalp:'⚡ سكالب: 5m + 15m. نركز على CVD، حجم اللحظة، OBV، السيولة، RSI وموقع السعر من المقاومة.',
   day:'☀️ يومي: 15m + 1h. نركز على التجميع، اتجاه الساعة، التدفق، الحجم والاستعداد للاختراق.',
@@ -119,28 +225,22 @@ const desc={
 function renderMode(){
   const a=STRATS[ACTIVE]||[];
   $('modeDesc').textContent=desc[ACTIVE];
-  $('modeOut').innerHTML=a.length
-    ?a.map((c,i)=>card(c,'#'+(i+1),c.strategy_score)).join('')
-    :'<div class="empty">اضغط فحص جديد لتحميل الاستراتيجيات.</div>';
+  $('modeOut').innerHTML=a.length?a.map((c,i)=>card(c,'#'+(i+1),c.strategy_score,'')).join(''):'<div class="empty">اضغط فحص جديد.</div>';
   bindCards();
 }
 
-/* ---------- LANES ---------- */
+/* ============ LANES ============ */
 function lanes(){
-  [['stealth','STEALTH_ACCUMULATION'],['prebreak','PRE_BREAKOUT'],['confirmed','CONFIRMED_EXPANSION']]
-  .forEach(([id,s])=>{
+  [['stealth','STEALTH_ACCUMULATION'],['prebreak','PRE_BREAKOUT'],['confirmed','CONFIRMED_EXPANSION']].forEach(([id,s])=>{
     const arr=DATA.filter(c=>c.stage===s).slice(0,5);
-    $(id).innerHTML=arr.length
-      ?arr.map((c,i)=>card(c,'#'+(i+1))).join('')
-      :'<div class="empty">لا توجد مطابقة حاليًا.</div>';
+    $(id).innerHTML=arr.length?arr.map((c,i)=>card(c,'#'+(i+1))).join(''):'<div class="empty">لا توجد مطابقة.</div>';
   });
   bindCards();
 }
 
-/* ---------- SCAN ---------- */
+/* ============ SCAN ============ */
 async function scan(){
-  const b=$('scan');
-  b.disabled=true;
+  const b=$('scan');b.disabled=true;
   $('scan .scan-text').textContent='جاري الفحص';
   try{
     const [d,st]=await Promise.all([j('/api/radar'),j('/api/strategies')]);
@@ -149,16 +249,24 @@ async function scan(){
     $('bin').innerHTML=`<i class="dot"></i> Binance 🟢 • ${d.scanned_universe||0} زوج`;
     $('stats').textContent=`آخر تحديث • ${d.scan_seconds||0}ث • ${d.deep_analyzed||0} تحليل عميق`;
 
-    // Top 5 sorted explicitly by Moon Score (fallback to early_moon_ratio)
-    const top=(d.top5||DATA.slice(0,5)).slice(0,5).slice().sort((a,b)=>moonScore(b)-moonScore(a));
-    $('top5').innerHTML=top.length
-      ?top.map((c,i)=>card(c,'#'+(i+1),null,i===0)).join('')
-      :'<div class="empty">لا توجد إشارات قوية حاليًا.</div>';
+    // SORT by Moon Score
+    const sorted=DATA.slice().sort((a,b)=>moonScore(b)-moonScore(a));
+    const top5=sorted.slice(0,5);
 
+    // Top #1 hero + #2..#5
+    if(top5[0]){
+      $('top1').innerHTML=card(top5[0],'#1','','hero');
+    } else {
+      $('top1').innerHTML='<div class="empty">لا توجد إشارات قوية.</div>';
+    }
+    $('top2to5').innerHTML=top5.slice(1).map((c,i)=>card(c,'#'+(i+2),'','main')).join('')
+      ||'<div class="empty">لا توجد عملات إضافية.</div>';
+
+    renderSonar();
     lanes();
     renderMode();
   }catch(e){
-    $('top5').innerHTML='<div class="empty red">تعذر تحميل الرادار: '+esc(e.message)+'</div>';
+    $('top1').innerHTML='<div class="empty red">تعذر التحميل: '+esc(e.message)+'</div>';
   }finally{
     b.disabled=false;
     $('scan .scan-text').textContent='فحص جديد';
@@ -166,7 +274,7 @@ async function scan(){
   }
 }
 
-/* ---------- WS STATUS ---------- */
+/* ============ WS ============ */
 async function ws(){
   try{
     const d=await j('/api/orderflow/status');
@@ -174,33 +282,18 @@ async function ws(){
   }catch{$('ws').innerHTML='<i class="dot" style="background:#ff4d6a"></i> البيانات الحية 🔴'}
 }
 
-/* ---------- ACC/FLOW ---------- */
+/* ============ AF ============ */
 function afCard(c,i){
   const m=moonScore(c);const tier=tierOf(m);
   return `<article class="coin" data-symbol="${esc(c.symbol)}">
-    <div class="coin-top">
-      <span class="rank">#${i+1} • ${esc(c.acc_flow_state_ar||c.acc_flow_state||'مراقبة')}</span>
-      <span class="symbol">${esc(c.symbol)}</span>
-    </div>
-    <div class="moon-row">
-      ${gauge(m)}
-      <div class="moon-meta">
-        <div class="tier-label"><span class="tier-badge ${tier.cls}">${tier.t}</span>${tier.label}</div>
-      </div>
-    </div>
+    <div class="coin-top"><span class="rank">#${i+1} • ${esc(c.acc_flow_state_ar||c.acc_flow_state||'مراقبة')}</span><span class="symbol">${esc(c.symbol)}</span></div>
+    <div class="moon-row">${gauge(m)}<div class="moon-meta"><div class="tier-label"><span class="tier-badge ${tier.cls}">${tier.t}</span>${tier.label}</div></div></div>
     ${spark(c.closes)}
     <div class="price">${money(c.price)}</div>
     <div class="score"><span>التجميع + التدفق</span><b>${n(c.acc_flow_score)}</b></div>
     <div class="bar"><i style="width:${Math.min(100,+c.acc_flow_score||0)}%"></i></div>
-    <div class="stats">
-      ${stat('التجميع',n(c.accumulation))}
-      ${stat('التدفق',n(c.flow_score))}
-      ${stat('CVD',n(c.cvd))}
-      ${stat('الحيتان',n(c.whale_hunter))}
-      ${stat('حجم/قيمة',n(c.volume_mcap_ratio,2)+'%')}
-      ${stat('القيمة السوقية',money(c.market_cap_usd))}
-    </div>
-    <span class="tag">${esc(c.utility||'المنفعة غير متحقق منها')}</span>
+    <div class="stats">${stat('التجميع',n(c.accumulation))}${stat('التدفق',n(c.flow_score))}${stat('CVD',n(c.cvd))}${stat('الحيتان',n(c.whale_hunter))}</div>
+    <span class="tag">${esc(c.utility||'غير متحقق')}</span>
     <p class="why">${esc(c.core_reason||'')}</p>
     <button class="more">🔎 تفاصيل العملة</button>
   </article>`;
@@ -212,37 +305,27 @@ async function af(){
     if(d.status!=='ok')throw Error(d.error||'خطأ');
     $('afsummary').innerHTML=`<span>المؤهل: ${d.matched}</span><span>التعميق: ${d.deep_checked}</span><span>القيمة السوقية ≥ $5B</span><span>حجم/قيمة ≥ ${d.core_filter.min_volume_mcap_pct}%</span>`;
     const list=(d.top10||[]).slice(0,5).slice().sort((a,b)=>moonScore(b)-moonScore(a));
-    $('afout').innerHTML=list.length
-      ?list.map(afCard).join('')
-      :'<div class="empty">لا توجد مطابقة حاليًا.</div>';
+    $('afout').innerHTML=list.length?list.map(afCard).join(''):'<div class="empty">لا توجد مطابقة.</div>';
     bindCards();
-  }catch(e){
-    $('afout').innerHTML='<div class="empty red">فشل الفحص: '+esc(e.message)+'</div>';
-  }finally{b.disabled=false;b.textContent='فحص الجودة'}
+  }catch(e){$('afout').innerHTML='<div class="empty red">فشل: '+esc(e.message)+'</div>';}
+  finally{b.disabled=false;b.textContent='فحص الجودة'}
 }
 
-/* ---------- BACKTEST ---------- */
+/* ============ BT ============ */
 async function bt(){
   const b=$('bt');b.disabled=true;b.textContent='جاري الاختبار';
   try{
     const d=await j('/api/backtest/top?top_n=50&days=30');
-    const rows=(d.pattern_leaderboard||[]).slice(0,5).map(x=>`
-      <div class="row">
-        <b>${esc(x.pattern)}</b>
-        <span>${x.signals} إشارة</span>
-        <span>${x.win_rate}% نجاح</span>
-        <span>${x.avg_return_pct}% متوسط</span>
-      </div>`).join('');
+    const rows=(d.pattern_leaderboard||[]).slice(0,5).map(x=>`<div class="row"><b>${esc(x.pattern)}</b><span>${x.signals} إشارة</span><span>${x.win_rate}% نجاح</span><span>${x.avg_return_pct}% متوسط</span></div>`).join('');
     $('btout').innerHTML=`<p>اختُبرت ${d.tested}/${d.top_n} عملة.</p>${rows}`;
-  }catch(e){
-    $('btout').innerHTML='<p class="red">فشل الاختبار: '+esc(e.message)+'</p>';
-  }finally{b.disabled=false;b.textContent='اختبر أفضل 50'}
+  }catch(e){$('btout').innerHTML='<p class="red">فشل: '+esc(e.message)+'</p>';}
+  finally{b.disabled=false;b.textContent='اختبر أفضل 50'}
 }
 
-/* ---------- DETAIL MODAL ---------- */
+/* ============ DETAIL ============ */
 async function detail(symbol){
   $('modal').classList.remove('hidden');
-  $('detail').innerHTML='<div class="loading">⏳ جاري جلب التحليل التفصيلي...</div>';
+  $('detail').innerHTML='<div class="loading">⏳ جاري جلب التحليل...</div>';
   try{
     const d=await j('/api/details/'+encodeURIComponent(symbol));
     if(d.status!=='ok')throw Error(d.error||'خطأ');
@@ -254,12 +337,11 @@ async function detail(symbol){
     $('detail').innerHTML=`
       <div class="detail-head">
         <div>
-          <div class="kicker">V3.9 • تحليل تفصيلي</div>
+          <div class="kicker">V4.0 • تحليل تفصيلي</div>
           <h2>${esc(d.symbol)}</h2>
           <div class="detail-price">${money(d.price)} <small>${n(d.change24h,2)}% خلال 24س</small></div>
         </div>
-        <div style="text-align:center">
-          ${gauge(m)}
+        <div style="text-align:center">${gauge(m)}
           <div class="tier-label" style="margin-top:6px"><span class="tier-badge ${tier.cls}">${tier.t}</span></div>
         </div>
       </div>
@@ -303,17 +385,14 @@ async function detail(symbol){
       </div>
       <h3>🔎 لماذا ظهرت؟</h3>
       <p>${esc((d.why||[]).join(' • ')||'لا توجد إشارة حاسمة بعد')}</p>
-      <p class="note">OBV = حجم تراكمي، وCVD Proxy هنا مبني من تدفق Taker Buy/Sell على شموع 1m وليس دفتر محافظ. التمويل من Futures إن توفر؛ والرادار الأساسي Spot. هذه مؤشرات احتمالية وليست ضمانًا لحركة السعر.</p>`;
-  }catch(e){
-    $('detail').innerHTML='<div class="empty red">تعذر جلب التفاصيل: '+esc(e.message)+'</div>';
-  }
+      <p class="note">OBV = حجم تراكمي. CVD Proxy مبني من Taker Buy/Sell على شموع 1m. السونار يعتمد على دمج المؤشرات الفنية + الحجم + السيولة (Order Book Depth، CVD، Whale، Volume Profile) وليس بيانات On-Chain حقيقية. النتائج احتمالية.</p>`;
+  }catch(e){$('detail').innerHTML='<div class="empty red">تعذر: '+esc(e.message)+'</div>';}
 }
 
-/* ---------- BIND ---------- */
+/* ============ BIND ============ */
 function bindCards(){
   document.querySelectorAll('[data-symbol]').forEach(x=>x.onclick=()=>detail(x.dataset.symbol));
 }
-
 $('scan').onclick=scan;
 $('af').onclick=af;
 $('bt').onclick=bt;
@@ -321,9 +400,7 @@ $('close').onclick=()=>$('modal').classList.add('hidden');
 $('modal').onclick=e=>{if(e.target.id==='modal')$('modal').classList.add('hidden')};
 document.querySelectorAll('.mode').forEach(x=>x.onclick=()=>{
   document.querySelectorAll('.mode').forEach(y=>y.classList.remove('active'));
-  x.classList.add('active');
-  ACTIVE=x.dataset.mode;
-  renderMode();
+  x.classList.add('active');ACTIVE=x.dataset.mode;renderMode();
 });
 
 scan(); ws(); setInterval(ws,5000); setInterval(scan,180000);
