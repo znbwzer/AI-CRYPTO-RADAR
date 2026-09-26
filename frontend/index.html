@@ -2,158 +2,200 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#030711">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="theme-color" content="#0a0e1a">
 <title>AI CRYPTO RADAR • صائد القمر + سونار الحيتان</title>
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<div class="bg-orbs" aria-hidden="true"><span></span><span></span><span></span></div>
 
-<div class="shell">
-
-  <header class="header">
-    <div class="brand">
-      <div class="logo-mark">🚀</div>
-      <div>
-        <div class="logo">AI CRYPTO RADAR <span class="version">V4.0</span></div>
-        <div class="sub">صائد القمر + سونار الحيتان والسيولة • Binance Spot + Flow</div>
-      </div>
+<!-- ═══ TOP APP BAR ═══ -->
+<header class="app-bar">
+  <div class="app-title">
+    <div class="app-logo">🚀</div>
+    <div>
+      <div class="app-name">AI CRYPTO RADAR <span class="app-v">V4.0</span></div>
+      <div class="app-sub">صائد القمر • سونار الحيتان</div>
     </div>
-    <button id="scan" class="scan">
-      <span class="scan-icon">⟳</span>
-      <span class="scan-text">فحص جديد</span>
-    </button>
-  </header>
-
-  <div class="live-bar">
-    <span class="live-pill" id="bin"><i class="dot"></i> Binance • جاري الاتصال</span>
-    <span class="live-pill" id="ws"><i class="dot"></i> البيانات الحية</span>
-    <span class="live-pill" id="stats">آخر تحديث • —</span>
   </div>
+  <button id="scan" class="btn-scan" aria-label="فحص">
+    <span class="spin">⟳</span>
+  </button>
+</header>
 
-  <!-- ============ MAIN SHOWCASE (best coin first) ============ -->
-  <section class="showcase">
-    <div class="hero-glow"></div>
-    <div class="showcase-head">
-      <div>
-        <div class="kicker">الأولوية القصوى • مرتبة تلقائيًا</div>
-        <h1>🌙 أفضل العملات المرشحة للطيران إلى القمر</h1>
-        <p>الترتيب حسب Moon Score (تجميع مبكر + جفاف حجم + تدفق شراء + نضارة الحركة)</p>
-      </div>
-      <div class="hero-badge"><span class="pulse"></span> LIVE • V4.0</div>
+<!-- ═══ LIVE STATUS PILLS ═══ -->
+<div class="status-bar">
+  <span class="pill" id="bin"><i class="dot"></i> Binance</span>
+  <span class="pill" id="ws"><i class="dot"></i> WS</span>
+  <span class="pill" id="stats">—</span>
+</div>
+
+<main class="page">
+
+  <!-- ═══ MARKET SUMMARY (like image 2) ═══ -->
+  <section class="card market-summary">
+    <div class="card-head">
+      <h2>📊 ملخص السوق</h2>
+      <span class="chip-live"><i class="dot"></i> LIVE</span>
     </div>
-
-    <div class="showcase-grid">
-      <div id="top1" class="top1-slot"></div>
-      <div id="top2to5" class="top2to5-slot"></div>
+    <div class="ms-grid">
+      <div class="ms-item">
+        <div class="ms-label">حجم التداول 24س</div>
+        <div class="ms-value" id="msVol">—</div>
+        <div class="ms-sub" id="msVolChange">—</div>
+      </div>
+      <div class="ms-item">
+        <div class="ms-label">صافي التدفق (Net Flow)</div>
+        <div class="ms-value" id="msNet">—</div>
+        <div class="ms-sub" id="msNetSub">—</div>
+      </div>
+      <div class="ms-item">
+        <div class="ms-label">مشاعر السوق</div>
+        <div class="ms-value" id="msSent">—</div>
+        <div class="ms-progress"><i id="msSentBar"></i></div>
+      </div>
+      <div class="ms-item">
+        <div class="ms-label">هيمنة البيتكوين</div>
+        <div class="ms-value" id="msBtcDom">—</div>
+        <div class="ms-progress"><i id="msBtcBar" style="background:linear-gradient(90deg,#ffc857,#ff8a3d)"></i></div>
+      </div>
+      <div class="ms-item">
+        <div class="ms-label">الأكثر ارتفاعًا / انخفاضًا</div>
+        <div class="ms-value">
+          <span class="up" id="msUp">—</span>
+          <span style="opacity:.5">/</span>
+          <span class="down" id="msDown">—</span>
+        </div>
+        <div class="ms-progress dual"><i id="msUpBar" class="up"></i><i id="msDownBar" class="down"></i></div>
+      </div>
+      <div class="ms-item">
+        <div class="ms-label">مؤشر الجشع والخوف</div>
+        <div class="ms-value" id="msFg">—</div>
+        <div class="ms-sub" id="msFgLabel">—</div>
+      </div>
     </div>
   </section>
 
-  <!-- ============ WHALE SONAR ============ -->
-  <section class="section sonar">
-    <div class="section-head">
-      <div>
-        <div class="kicker">ON-CHAIN STYLE • SMART MONEY</div>
-        <h2>🌊 سونار الحيتان والسيولة</h2>
-        <p>رصد تدفق الأموال الذكية وضغط السيولة عبر الرادار — مبني على CVD، Taker Buy/Sell، Order Book Depth، وVolume Profile</p>
-      </div>
-      <div class="sonar-status"><span class="pulse"></span> SCANNING</div>
+  <!-- ═══ TOP SIGNALS (like image 1) ═══ -->
+  <section class="card signals-card">
+    <div class="card-head">
+      <h2>🌙 أقوى الإشارات — إلى القمر</h2>
+      <span class="chip-tier">TOP 5</span>
+    </div>
+    <div id="topSignals" class="signals-list"></div>
+  </section>
+
+  <!-- ═══ WHALE SONAR ═══ -->
+  <section class="card sonar-card">
+    <div class="card-head">
+      <h2>🌊 سونار الحيتان والسيولة</h2>
+      <span class="chip-live"><i class="dot"></i> REALTIME</span>
     </div>
 
-    <div class="sonar-grid">
+    <div class="sonar-strip">
+      <div class="ss-item">
+        <span class="ss-label">Net Flow</span>
+        <b id="ssNet">—</b>
+      </div>
+      <div class="ss-item">
+        <span class="ss-label">Buy Volume</span>
+        <b id="ssBuy" class="up">—</b>
+      </div>
+      <div class="ss-item">
+        <span class="ss-label">Sell Volume</span>
+        <b id="ssSell" class="down">—</b>
+      </div>
+      <div class="ss-item">
+        <span class="ss-label">Mood</span>
+        <b id="ssMood">—</b>
+      </div>
+    </div>
 
-      <!-- Radar -->
-      <div class="sonar-panel radar-panel">
-        <div class="panel-head">
-          <b>📡 رادار السيولة</b>
-          <span id="radarSymbol" class="panel-sub">—</span>
-        </div>
+    <div class="timeline-strip" id="tlStrip"></div>
+
+    <div class="sonar-grid">
+      <div class="sonar-panel">
+        <div class="panel-head"><b>📡 رادار السيولة</b><span id="radarSymbol" class="panel-sub">—</span></div>
         <div id="radarViz" class="radar-viz"></div>
         <div id="radarLegend" class="radar-legend"></div>
       </div>
-
-      <!-- Whale Flow -->
-      <div class="sonar-panel flow-panel">
-        <div class="panel-head"><b>🐋 تدفق الحيتان (Buy vs Sell)</b><span class="panel-sub">آخر 5 دقائق</span></div>
+      <div class="sonar-panel">
+        <div class="panel-head"><b>🐋 تدفق الحيتان</b><span class="panel-sub">آخر 5 دقائق</span></div>
         <div id="whaleFlow" class="whale-flow"></div>
       </div>
-
-      <!-- Smart Money Map -->
-      <div class="sonar-panel heat-panel">
+      <div class="sonar-panel">
         <div class="panel-head"><b>💎 خريطة Smart Money</b><span class="panel-sub">Top 20</span></div>
         <div id="smartMap" class="smart-map"></div>
       </div>
-
-      <!-- Liquidity Ladder -->
-      <div class="sonar-panel ladder-panel">
-        <div class="panel-head"><b>📊 سلّم السيولة + CVD</b><span class="panel-sub">Net Flow</span></div>
+      <div class="sonar-panel">
+        <div class="panel-head"><b>📊 سلّم السيولة</b><span class="panel-sub">CVD / Whale</span></div>
         <div id="liqLadder" class="liq-ladder"></div>
       </div>
-
     </div>
   </section>
 
-  <!-- ============ MODES ============ -->
-  <section class="section">
-    <div class="section-head">
-      <div>
-        <div class="kicker">استراتيجيات مستقلة</div>
-        <h2>🎯 أفضل 5 حسب أسلوب التداول</h2>
-      </div>
-    </div>
+  <!-- ═══ STRATEGIES ═══ -->
+  <section class="card">
+    <div class="card-head"><h2>🎯 أفضل 5 حسب الأسلوب</h2></div>
     <div class="modes">
-      <button class="mode active" data-mode="scalp"><em>⚡</em><b>سكالب</b><small>5–15 دقيقة</small></button>
-      <button class="mode" data-mode="day"><em>☀️</em><b>تداول يومي</b><small>15د – 1س</small></button>
-      <button class="mode" data-mode="swing"><em>🌊</em><b>سوينغ</b><small>1–4 ساعات</small></button>
-      <button class="mode" data-mode="invest"><em>🏦</em><b>استثمار</b><small>شهر – شهرين</small></button>
+      <button class="mode active" data-mode="scalp"><em>⚡</em><b>سكالب</b><small>5–15د</small></button>
+      <button class="mode" data-mode="day"><em>☀️</em><b>يومي</b><small>15د–1س</small></button>
+      <button class="mode" data-mode="swing"><em>🌊</em><b>سوينغ</b><small>1–4س</small></button>
+      <button class="mode" data-mode="invest"><em>🏦</em><b>استثمار</b><small>شهر–شهرين</small></button>
     </div>
     <div id="modeDesc" class="desc"></div>
     <div id="modeOut" class="grid-5"></div>
   </section>
 
-  <!-- ============ PHASES ============ -->
-  <section class="section">
-    <div class="section-head">
-      <div>
-        <div class="kicker">مراحل الحركة</div>
-        <h2>🌙 صائد ما قبل الصعود</h2>
-      </div>
-    </div>
+  <!-- ═══ PHASES ═══ -->
+  <section class="card">
+    <div class="card-head"><h2>🌙 صائد ما قبل الصعود</h2></div>
     <div class="phase-grid">
       <div class="phase stealth"><header><span class="ph-ico">🟦</span><div><b>التجميع الخفي</b><small>مبكر وهادئ</small></div></header><div id="stealth"></div></div>
-      <div class="phase pre"><header><span class="ph-ico">🟨</span><div><b>قبل الاختراق</b><small>ضغط + مقاومة قريبة</small></div></header><div id="prebreak"></div></div>
+      <div class="phase pre"><header><span class="ph-ico">🟨</span><div><b>قبل الاختراق</b><small>ضغط + مقاومة</small></div></header><div id="prebreak"></div></div>
       <div class="phase confirm"><header><span class="ph-ico">🟢</span><div><b>التوسع المؤكد</b><small>الحركة بدأت</small></div></header><div id="confirmed"></div></div>
     </div>
   </section>
 
-  <!-- ============ AF ============ -->
-  <section class="section">
-    <div class="section-head">
-      <div>
-        <div class="kicker">فلتر جودة اختياري</div>
-        <h2>🏆 التجميع + تدفق الشراء</h2>
-        <p>فلتر القيمة السوقية ≥ $5B والسيولة</p>
-      </div>
-      <button id="af" class="btn-ghost">فحص الجودة</button>
+  <!-- ═══ AF QUALITY ═══ -->
+  <section class="card">
+    <div class="card-head">
+      <h2>🏆 الجودة العالية (تجميع + تدفق)</h2>
+      <button id="af" class="btn-ghost">فحص</button>
     </div>
     <div id="afsummary" class="chip-row"></div>
     <div id="afout" class="grid-5"></div>
   </section>
 
-  <!-- ============ BACKTEST ============ -->
-  <section class="section collapsible">
+  <!-- ═══ BACKTEST ═══ -->
+  <section class="card">
     <details>
-      <summary><span>🧪 التحقق التاريخي</span><small>اختياري • قد يستغرق وقتًا</small></summary>
+      <summary><span>🧪 التحقق التاريخي</span><small>اختياري</small></summary>
       <button id="bt" class="btn-ghost">اختبر أفضل 50</button>
       <div id="btout" class="bt-out"></div>
     </details>
   </section>
 
-  <footer>⚠️ النتائج احتمالية وليست توصية مالية. اضغط أي عملة للتفاصيل الكاملة.</footer>
+  <footer>⚠️ النتائج احتمالية وليست توصية مالية</footer>
+</main>
+
+<!-- ═══ BOTTOM NAV (mobile app style) ═══ -->
+<nav class="bottom-nav">
+  <button class="bn-btn active" data-scroll="topSignals"><span>📈</span><small>إشارات</small></button>
+  <button class="bn-btn" data-scroll="sonar-card"><span>🌊</span><small>سونار</small></button>
+  <button class="bn-btn bn-main"><span class="bn-pulse">🌙</span></button>
+  <button class="bn-btn" data-scroll="modeOut"><span>🎯</span><small>استراتيجيات</small></button>
+  <button class="bn-btn" data-scroll="bottom"><span>⋯</span><small>المزيد</small></button>
+</nav>
+
+<!-- ═══ MODAL ═══ -->
+<div id="modal" class="modal hidden">
+  <div class="modalbox">
+    <button id="close" class="close">×</button>
+    <div id="detail"></div>
+  </div>
 </div>
 
-<div id="modal" class="modal hidden"><div class="modalbox"><button id="close" class="close">×</button><div id="detail"></div></div></div>
 <script src="/static/dashboard.js"></script>
 </body>
 </html>
