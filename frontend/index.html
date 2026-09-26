@@ -4,21 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#030711">
-<title>AI CRYPTO RADAR • صائد القمر</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<title>AI CRYPTO RADAR • صائد القمر + سونار الحيتان</title>
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 <div class="bg-orbs" aria-hidden="true"><span></span><span></span><span></span></div>
 
 <div class="shell">
+
   <header class="header">
     <div class="brand">
       <div class="logo-mark">🚀</div>
       <div>
-        <div class="logo">AI CRYPTO RADAR <span class="version">V3.9</span></div>
-        <div class="sub">صائد التجميع المبكر • مرتّب حسب إمكانية "الطيران إلى القمر" 🌙</div>
+        <div class="logo">AI CRYPTO RADAR <span class="version">V4.0</span></div>
+        <div class="sub">صائد القمر + سونار الحيتان والسيولة • Binance Spot + Flow</div>
       </div>
     </div>
     <button id="scan" class="scan">
@@ -33,19 +32,69 @@
     <span class="live-pill" id="stats">آخر تحديث • —</span>
   </div>
 
-  <section class="hero">
+  <!-- ============ MAIN SHOWCASE (best coin first) ============ -->
+  <section class="showcase">
     <div class="hero-glow"></div>
-    <div class="hero-head">
+    <div class="showcase-head">
       <div>
-        <div class="kicker">الأولوية القصوى</div>
-        <h1>🌙 أقرب 5 عملات إلى القمر</h1>
-        <p>مرتّبة حسب Moon Score = تجميع مبكر + جفاف حجم + تدفق شراء قبل الانفجار</p>
+        <div class="kicker">الأولوية القصوى • مرتبة تلقائيًا</div>
+        <h1>🌙 أفضل العملات المرشحة للطيران إلى القمر</h1>
+        <p>الترتيب حسب Moon Score (تجميع مبكر + جفاف حجم + تدفق شراء + نضارة الحركة)</p>
       </div>
-      <div class="hero-badge"><span class="pulse"></span> LIVE • V3.9</div>
+      <div class="hero-badge"><span class="pulse"></span> LIVE • V4.0</div>
     </div>
-    <div id="top5" class="moon-grid"></div>
+
+    <div class="showcase-grid">
+      <div id="top1" class="top1-slot"></div>
+      <div id="top2to5" class="top2to5-slot"></div>
+    </div>
   </section>
 
+  <!-- ============ WHALE SONAR ============ -->
+  <section class="section sonar">
+    <div class="section-head">
+      <div>
+        <div class="kicker">ON-CHAIN STYLE • SMART MONEY</div>
+        <h2>🌊 سونار الحيتان والسيولة</h2>
+        <p>رصد تدفق الأموال الذكية وضغط السيولة عبر الرادار — مبني على CVD، Taker Buy/Sell، Order Book Depth، وVolume Profile</p>
+      </div>
+      <div class="sonar-status"><span class="pulse"></span> SCANNING</div>
+    </div>
+
+    <div class="sonar-grid">
+
+      <!-- Radar -->
+      <div class="sonar-panel radar-panel">
+        <div class="panel-head">
+          <b>📡 رادار السيولة</b>
+          <span id="radarSymbol" class="panel-sub">—</span>
+        </div>
+        <div id="radarViz" class="radar-viz"></div>
+        <div id="radarLegend" class="radar-legend"></div>
+      </div>
+
+      <!-- Whale Flow -->
+      <div class="sonar-panel flow-panel">
+        <div class="panel-head"><b>🐋 تدفق الحيتان (Buy vs Sell)</b><span class="panel-sub">آخر 5 دقائق</span></div>
+        <div id="whaleFlow" class="whale-flow"></div>
+      </div>
+
+      <!-- Smart Money Map -->
+      <div class="sonar-panel heat-panel">
+        <div class="panel-head"><b>💎 خريطة Smart Money</b><span class="panel-sub">Top 20</span></div>
+        <div id="smartMap" class="smart-map"></div>
+      </div>
+
+      <!-- Liquidity Ladder -->
+      <div class="sonar-panel ladder-panel">
+        <div class="panel-head"><b>📊 سلّم السيولة + CVD</b><span class="panel-sub">Net Flow</span></div>
+        <div id="liqLadder" class="liq-ladder"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ MODES ============ -->
   <section class="section">
     <div class="section-head">
       <div>
@@ -63,6 +112,7 @@
     <div id="modeOut" class="grid-5"></div>
   </section>
 
+  <!-- ============ PHASES ============ -->
   <section class="section">
     <div class="section-head">
       <div>
@@ -71,21 +121,13 @@
       </div>
     </div>
     <div class="phase-grid">
-      <div class="phase stealth">
-        <header><span class="ph-ico">🟦</span><div><b>التجميع الخفي</b><small>مبكر وهادئ</small></div></header>
-        <div id="stealth"></div>
-      </div>
-      <div class="phase pre">
-        <header><span class="ph-ico">🟨</span><div><b>قبل الاختراق</b><small>ضغط + مقاومة قريبة</small></div></header>
-        <div id="prebreak"></div>
-      </div>
-      <div class="phase confirm">
-        <header><span class="ph-ico">🟢</span><div><b>التوسع المؤكد</b><small>الحركة بدأت</small></div></header>
-        <div id="confirmed"></div>
-      </div>
+      <div class="phase stealth"><header><span class="ph-ico">🟦</span><div><b>التجميع الخفي</b><small>مبكر وهادئ</small></div></header><div id="stealth"></div></div>
+      <div class="phase pre"><header><span class="ph-ico">🟨</span><div><b>قبل الاختراق</b><small>ضغط + مقاومة قريبة</small></div></header><div id="prebreak"></div></div>
+      <div class="phase confirm"><header><span class="ph-ico">🟢</span><div><b>التوسع المؤكد</b><small>الحركة بدأت</small></div></header><div id="confirmed"></div></div>
     </div>
   </section>
 
+  <!-- ============ AF ============ -->
   <section class="section">
     <div class="section-head">
       <div>
@@ -99,6 +141,7 @@
     <div id="afout" class="grid-5"></div>
   </section>
 
+  <!-- ============ BACKTEST ============ -->
   <section class="section collapsible">
     <details>
       <summary><span>🧪 التحقق التاريخي</span><small>اختياري • قد يستغرق وقتًا</small></summary>
@@ -107,18 +150,10 @@
     </details>
   </section>
 
-  <footer>
-    ⚠️ النتائج احتمالية وليست توصية مالية. لا يوجد تداول آلي. اضغط على أي عملة للتفاصيل الكاملة.
-  </footer>
+  <footer>⚠️ النتائج احتمالية وليست توصية مالية. اضغط أي عملة للتفاصيل الكاملة.</footer>
 </div>
 
-<div id="modal" class="modal hidden">
-  <div class="modalbox">
-    <button id="close" class="close">×</button>
-    <div id="detail"></div>
-  </div>
-</div>
-
+<div id="modal" class="modal hidden"><div class="modalbox"><button id="close" class="close">×</button><div id="detail"></div></div></div>
 <script src="/static/dashboard.js"></script>
 </body>
 </html>
