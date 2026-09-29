@@ -155,54 +155,92 @@ function hideBanner(){
 }
 
 /* ═══ MARKET SUMMARY ═══ */
+let MS_DATA=null;
 function renderMarketSummary(){
+  // Prefer the dedicated /api/market-summary payload (real market cap,
+  // real Fear&Greed, BTC dominance) — it works even if the deep radar
+  // scan hasn't produced results yet. Fall back to computing breadth
+  // (gainers/losers, avg change) from the radar DATA if that endpoint
+  // hasn't answered yet.
   const arr=DATA||[];
-  if(!arr.length)return; // keeps the "—" placeholders until real data arrives
+  const ms=MS_DATA;
 
-  const totalVol=arr.reduce((s,c)=>s+(+c.quoteVolume24h||0),0);
-  const up=arr.filter(c=>(+c.change24h||0)>0).length;
-  const down=arr.length-up;
-  const upPct=Math.round(up/arr.length*100);
-  const downPct=100-upPct;
-  const avgChange=arr.reduce((s,c)=>s+(+c.change24h||0),0)/arr.length;
+  const haveVol = ms && ms.volume_24h!=null;
+  const haveArr = arr.length>0;
+  if(!haveVol && !haveArr) return; // nothing at all yet, keep placeholders
 
-  // Net flow from sonar if available, else approximation
-  const net=+(SONAR.global?.net_flow||0);
-  const sentiment=SONAR.global?.sentiment||
-    (avgChange>1?'BULLISH':avgChange<-1?'BEARISH':'NEUTRAL');
-
-  // BTC dominance proxy
-  const btc=arr.find(c=>c.symbol==='BTCUSDT');
-  const btcVol=+(btc?.quoteVolume24h||0);
-  const btcDom=totalVol>0?Math.round(btcVol/totalVol*100):0;
-
-  // Fear & Greed proxy (0-100)
-  const fg=Math.round(Math.max(0,Math.min(100,50+avgChange*8+upPct*0.4-30)));
-
+  const totalVol = haveVol ? ms.volume_24h : arr.reduce((s,c)=>s+(+c.quoteVolume24h||0),0);
   $('msVol').textContent=money(totalVol);
-  $('msVolChange').innerHTML=`<span class="${avgChange>=0?'up':'down'}">${avgChange>=0?'+':''}${n(avgChange,2)}% متوسط</span>`;
+  const volCh = ms && ms.market_cap_change_pct_24h!=null ? ms.market_cap_change_pct_24h
+              : (haveArr ? arr.reduce((s,c)=>s+(+c.change24h||0),0)/arr.length : null);
+  $('msVolChange').innerHTML = volCh==null ? '—'
+    : `<span class="${volCh>=0?'up':'down'}">${volCh>=0?'+':''}${n(volCh,2)}% متوسط</span>`;
 
-  const netEl=$('msNet');
-  netEl.textContent=moneySigned(net);
-  netEl.style.color=net>0?'var(--up)':net<0?'var(--down)':'#fff';
-  $('msNetSub').innerHTML=`<span class="${net>=0?'up':'down'}">${net>=0?'🟢 شراء':'🔴 بيع'}</span>`;
+  if(ms && ms.market_cap!=null){
+    $('msCap').textContent=money(ms.market_cap);
+    const cc=ms.market_cap_change_pct_24h;
+    $('msCapChange').innerHTML = cc==null?'—':`<span class="${cc>=0?'up':'down'}">${cc>=0?'+':''}${n(cc,2)}%</span>`;
+  }else{
+    $('msCap').textContent='—';
+    $('msCapChange').textContent='جاري التحميل…';
+  }
 
+  if(ms && ms.fear_greed!=null){
+    const fg=ms.fear_greed;
+    $('msFg').textContent=fg;
+    $('msFgLabel').textContent=ms.fear_greed_label||(fg>=75?'جشع شديد':fg>=55?'جشع':fg>=45?'محايد':fg>=25?'خوف':'خوف شديد');
+    $('msFgBar').style.width=Math.max(2,Math.min(100,fg))+'%';
+  }else{
+    $('msFg').textContent='—';
+    $('msFgLabel').textContent='—';
+    $('msFgBar').style.width='0%';
+  }
+
+  const sentiment = (ms && ms.sentiment) || (haveArr ? (
+    (arr.reduce((s,c)=>s+(+c.change24h||0),0)/arr.length)>1?'BULLISH':
+    (arr.reduce((s,c)=>s+(+c.change24h||0),0)/arr.length)<-1?'BEARISH':'NEUTRAL'
+  ) : null);
   const sentEl=$('msSent');
-  const sentLabel=sentiment==='BULLISH'?'إيجابي 🐂':sentiment==='BEARISH'?'سلبي 🐻':'محايد ⚖️';
-  sentEl.textContent=sentLabel;
-  sentEl.style.color=sentiment==='BULLISH'?'var(--up)':sentiment==='BEARISH'?'var(--down)':'#fff';
-  $('msSentBar').style.width=Math.min(100,upPct)+'%';
+  if(sentiment){
+    sentEl.textContent=sentiment==='BULLISH'?'إيجابي 🐂':sentiment==='BEARISH'?'سلبي 🐻':'محايد ⚖️';
+    sentEl.style.color=sentiment==='BULLISH'?'var(--up)':sentiment==='BEARISH'?'var(--down)':'#fff';
+  }else{
+    sentEl.textContent='—';sentEl.style.color='';
+  }
+  const gPct = (ms && ms.gainers_pct!=null) ? ms.gainers_pct
+             : (haveArr ? Math.round(arr.filter(c=>(+c.change24h||0)>0).length/arr.length*100) : null);
+  $('msSentBar').style.width=(gPct==null?0:Math.min(100,gPct))+'%';
 
-  $('msBtcDom').textContent=btcDom+'%';
-  $('msBtcBar').style.width=btcDom+'%';
+  if(ms && ms.btc_dominance!=null){
+    $('msBtcDom').textContent=n(ms.btc_dominance,1)+'%';
+    $('msBtcDomSub').innerHTML='<span class="flat">مصدر: CoinGecko</span>';
+    $('msBtcBar').style.width=Math.min(100,ms.btc_dominance)+'%';
+  }else if(haveArr){
+    const btc=arr.find(c=>c.symbol==='BTCUSDT');
+    const btcVol=+(btc?.quoteVolume24h||0);
+    const btcDom=totalVol>0?Math.round(btcVol/totalVol*100):0;
+    $('msBtcDom').textContent=btcDom+'%';
+    $('msBtcDomSub').innerHTML='<span class="flat">تقريبي (حجم Binance)</span>';
+    $('msBtcBar').style.width=btcDom+'%';
+  }else{
+    $('msBtcDom').textContent='—';$('msBtcDomSub').textContent='—';$('msBtcBar').style.width='0%';
+  }
 
-  $('msUp').textContent=upPct+'%';
-  $('msDown').textContent=downPct+'%';
-  $('msUpBar').style.width=upPct+'%';
-  $('msDownBar').style.width=downPct+'%';
+  const upPct = gPct;
+  const downPct = upPct==null?null:100-upPct;
+  $('msUp').textContent=upPct==null?'—':upPct+'%';
+  $('msDown').textContent=downPct==null?'—':downPct+'%';
+  $('msUpBar').style.width=(upPct||0)+'%';
+  $('msDownBar').style.width=(downPct||0)+'%';
+}
 
-  $('msFg').textContent=fg;
-  $('msFgLabel').textContent=fg>=75?'جشع شديد':fg>=55?'جشع':fg>=45?'محايد':fg>=25?'خوف':'خوف شديد';
+let MS_FAILS=0;
+async function pollMarketSummary(){
+  try{
+    const d=await j('/api/market-summary');
+    if(d.status==='ok'){MS_FAILS=0;MS_DATA=d;renderMarketSummary();}
+    else MS_FAILS++;
+  }catch(e){MS_FAILS++;}
 }
 
 /* ═══ SONAR ═══ */
@@ -672,11 +710,23 @@ document.querySelectorAll('.bn-btn[data-scroll]').forEach(b=>{
     document.querySelectorAll('.bn-btn').forEach(y=>y.classList.remove('active'));
     b.classList.add('active');
     const target=b.dataset.scroll;
-    if(target==='bottom')window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
-    else{
-      const el=$(target);
-      if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+    if(target==='bottom'){
+      window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+      return;
     }
+    const el=$(target);
+    if(!el){
+      console.warn('bottom-nav: target element not found:',target);
+      return;
+    }
+    el.scrollIntoView({behavior:'smooth',block:'start'});
+    // brief highlight so it's obvious the tap did something, even if the
+    // section it scrolled to is still empty/loading.
+    const card=el.closest('.card')||el;
+    card.classList.remove('nav-flash');
+    void card.offsetWidth;
+    card.classList.add('nav-flash');
+    setTimeout(()=>card.classList.remove('nav-flash'),1200);
   };
 });
 
@@ -684,6 +734,8 @@ document.querySelectorAll('.bn-btn[data-scroll]').forEach(b=>{
 scan();
 ws();
 pollSonar();
+pollMarketSummary();
 setInterval(ws,8000);
-setInterval(pollSonar,3000);
+setInterval(pollSonar,6000);
+setInterval(pollMarketSummary,30000);
 setInterval(scan,180000);
